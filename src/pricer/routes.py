@@ -28,13 +28,13 @@ async def root() -> Dict[str, str]:
 @app.websocket('/api/v1/ws')
 async def prices(websocket: WebSocket) -> None:
     await websocket.accept()
-    logging.info("WebSocket connection accepted.")
 
-    client_id = websocket.headers.get('X-Client-Id')
+    client_id = websocket.headers.get('X-Client-ID')
     if not client_id:
         await websocket.close(code=1008)
-        logging.error("Missing X-Client-Id header.")
+        logging.error("Missing X-Client-ID header.")
         return
+    logging.info(f"WebSocket connection accepted for client {client_id}.")
 
     async def receive_messages():
         """Receive stock symbols from the client."""

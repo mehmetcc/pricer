@@ -17,11 +17,11 @@ services:
     depends_on:
       - redis
 
-  app:
+  pricer:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: "app"
+    container_name: "pricer"
     ports:
       - "9990:9990"
     depends_on:
