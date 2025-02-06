@@ -25,6 +25,11 @@ async def root() -> Dict[str, str]:
     return {'message': 'I am running, against all odds'}
 
 
+@app.get('/symbol')
+async def symbols(client_id: str) -> list[str]:
+    return await get_symbols_by_client_id(client_id)
+
+
 @app.websocket('/api/v1/ws')
 async def prices(websocket: WebSocket) -> None:
     await websocket.accept()
