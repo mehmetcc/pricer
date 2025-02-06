@@ -14,6 +14,7 @@ class NoSymbolsException(Exception):
 async def set_symbol(stock: str, client_id: str) -> None:
     await client.sadd(f"pricer:symbols:{client_id}", stock)
 
+
 async def get_symbols(client_id: str) -> list[str]:
     symbols = await client.smembers(f"pricer:symbols:{client_id}")
     if not symbols:
