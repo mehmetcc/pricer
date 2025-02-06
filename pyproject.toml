@@ -11,6 +11,8 @@ python = "^3.13"
 fastapi = "^0.115.5"
 uvicorn = {extras = ["standard"], version = "^0.32.1"}
 yfinance = "^0.2.50"
+setuptools = "^75.8.0"
+redis = "^5.2.1"
 
 [tool.poetry.scripts]
 start = "src.pricer.main:start"

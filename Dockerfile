@@ -29,7 +29,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH="/app/src"
 
 # Expose the application port
-EXPOSE 8000
+EXPOSE 9990
 
 # Set the command to run the app
 CMD ["poetry", "run", "start"]

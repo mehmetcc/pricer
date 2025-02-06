@@ -1,0 +1,31 @@
+services:
+  redis:
+    image: "redis:latest"
+    container_name: "redis"
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  redis-ui:
+    image: "rediscommander/redis-commander:latest"
+    container_name: "redis-ui"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: "app"
+    ports:
+      - "9990:9990"
+    depends_on:
+      - redis
+
+volumes:
+  redis-data:

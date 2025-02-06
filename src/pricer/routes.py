@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 import logging
 
-from .resolver import get_latest_stock_prices
+from .resolver import get_latest_stock_prices, get_symbols_by_client_id, set_symbol_by_client_id
 
 
 origins = [
@@ -27,17 +27,23 @@ async def root() -> Dict[str, str]:
 
 @app.websocket('/api/v1/ws')
 async def prices(websocket: WebSocket) -> None:
-    stocks = []  # List to store stock symbols
     await websocket.accept()
     logging.info("WebSocket connection accepted.")
+
+    client_id = websocket.headers.get('X-Client-Id')
+    if not client_id:
+        await websocket.close(code=1008)
+        logging.error("Missing X-Client-Id header.")
+        return
 
     async def receive_messages():
         """Receive stock symbols from the client."""
         while True:
             try:
                 data = await websocket.receive_text()
-                if data not in stocks:
-                    stocks.append(data)
+                symbols = await get_symbols_by_client_id(client_id)
+                if data not in symbols:
+                    await set_symbol_by_client_id(data, client_id)
                     logging.info(f"Added stock symbol: {data}")
                     await websocket.send_text(f"Tracking stock: {data}")
             except Exception as e:
@@ -48,9 +54,10 @@ async def prices(websocket: WebSocket) -> None:
         """Stream stock prices to the client every 10 seconds."""
         while True:
             try:
-                if stocks:
+                symbols = await get_symbols_by_client_id(client_id)
+                if symbols:
                     # Send latest stock prices for tracked symbols
-                    stock_prices = get_latest_stock_prices(stocks)
+                    stock_prices = get_latest_stock_prices(symbols)
                     logging.info(f"Sending stock prices: {stock_prices}")
                     await websocket.send_json(stock_prices)
                 await asyncio.sleep(10)
