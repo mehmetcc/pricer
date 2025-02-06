@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 import logging
 
-from .resolver import get_latest_stock_prices, get_symbols_by_client_id, set_symbol_by_client_id
+from .resolver import get_latest_stock_prices, get_symbols_by_client_id, set_symbol_by_client_id, check_if_valid_symbol
 
 
 origins = [
@@ -41,11 +41,17 @@ async def prices(websocket: WebSocket) -> None:
         while True:
             try:
                 data = await websocket.receive_text()
-                symbols = await get_symbols_by_client_id(client_id)
-                if data not in symbols:
-                    await set_symbol_by_client_id(data, client_id)
-                    logging.info(f"Added stock symbol: {data}")
-                    await websocket.send_text(f"Tracking stock: {data}")
+                check = check_if_valid_symbol(data)
+
+                if check:
+                    symbols = await get_symbols_by_client_id(client_id)
+                    if data not in symbols:
+                        await set_symbol_by_client_id(data, client_id)
+                        logging.info(f"Added stock symbol: {data}")
+                        await websocket.send_text(f"Tracking stock: {data}")
+                else:
+                    logging.error(f"Invalid stock symbol: {data}")
+                    await websocket.send_text(f"Invalid stock symbol: {data}")
             except Exception as e:
                 logging.error(f"Error receiving message: {e}")
                 break

@@ -42,3 +42,11 @@ def get_latest_stock_prices(symbols: list[str]) -> Dict[str, float]:
         except Exception as e:
             logging.error(f'Exception occured: {e}')
     return result
+
+
+def check_if_valid_symbol(symbol: str) -> bool:
+    try:
+        get_latest_price(symbol)
+        return True
+    except:
+        return False
