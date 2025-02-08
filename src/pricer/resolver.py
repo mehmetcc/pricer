@@ -2,7 +2,7 @@ import yfinance as yf
 import logging
 from typing import Dict
 
-from .redis import get_symbols, set_symbol
+from .redis import get_symbols, set_symbol, delete_symbol
 
 
 class StockNotFoundException(Exception):
@@ -16,6 +16,10 @@ async def get_symbols_by_client_id(client_id: str) -> list[str]:
 
 async def set_symbol_by_client_id(stock: str, client_id: str) -> None:
     await set_symbol(stock, client_id)
+
+
+async def delete_symbol_by_client_id(stock: str, client_id: str) -> None:
+    await delete_symbol(stock, client_id)
 
 
 def get_latest_price(symbol: str) -> float:

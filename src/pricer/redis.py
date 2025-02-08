@@ -20,3 +20,6 @@ async def get_symbols(client_id: str) -> list[str]:
     if not symbols:
         return []
     return list(symbols)
+
+async def delete_symbol(stock: str, client_id) -> None:
+    await client.srem(f"pricer:symbols:{client_id}", stock)

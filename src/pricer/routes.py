@@ -1,10 +1,11 @@
 from typing import Dict
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, Header, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 import logging
 
-from .resolver import get_latest_stock_prices, get_symbols_by_client_id, set_symbol_by_client_id, check_if_valid_symbol
+from .resolver import *
+from pydantic import BaseModel
 
 
 origins = [
@@ -26,8 +27,34 @@ async def root() -> Dict[str, str]:
 
 
 @app.get('/symbol')
-async def symbols(client_id: str) -> list[str]:
+async def get_symbol(client_id: str = Header(None, alias="X-Client-ID")) -> list[str]:
     return await get_symbols_by_client_id(client_id)
+
+
+class StockSymbol(BaseModel):
+    symbol: str
+
+
+@app.post('/symbol')
+async def add_symbol(stock: StockSymbol, client_id: str = Header(None, alias="X-Client-ID")) -> None:
+    check = check_if_valid_symbol(stock.symbol)
+
+    if check:
+        symbols = await get_symbols_by_client_id(client_id)
+        if stock.symbol not in symbols:
+            await set_symbol_by_client_id(stock.symbol, client_id)
+            return {"message": f"Symbol {stock.symbol} added for client {client_id}"}
+        return {"message": f"Symbol {stock.symbol} already exists for client {client_id}"}
+    else:
+        from fastapi import HTTPException, Header
+        raise HTTPException(
+            status_code=400, detail=f"Invalid stock symbol: {stock.symbol}")
+
+
+@app.delete('/symbol')
+async def delete_symbol(stock: StockSymbol, client_id: str = Header(None, alias="X-Client-ID")) -> None:
+    await delete_symbol_by_client_id(stock.symbol, client_id)
+    return {"message": f"Symbol {stock.symbol} deleted for client {client_id}"}
 
 
 @app.websocket('/api/v1/ws')
